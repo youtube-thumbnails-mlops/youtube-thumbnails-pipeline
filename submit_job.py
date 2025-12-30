@@ -11,9 +11,12 @@ runpod.api_key = API_KEY
 def submit_job():
     # Configuration
     GPU_TYPE = "NVIDIA GeForce RTX 3090"
-    IMAGE_NAME = "danieleacquaviva/youtube-thumbnails-train:latest" # Example
     
-    print("🚀 Submitting job to RunPod...")
+    # Get image version from env (set by check_and_trigger), default to 'latest' only if missing
+    image_tag = os.getenv("IMAGE_TAG", "latest")
+    IMAGE_NAME = f"danieleacquaviva/youtube-thumbnails-train:{image_tag}"
+    
+    print(f"🚀 Submitting job to RunPod with image: {IMAGE_NAME}...")
     
     # 1. Create a Pod
     pod = runpod.create_pod(
