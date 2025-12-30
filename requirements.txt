@@ -1,0 +1,9 @@
+torch
+torchvision
+wandb
+dvc
+pandas
+pillow
+scikit-learn
+tqdm
+runpod

@@ -1,0 +1,29 @@
+name: Continuous Training Monitor
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Weekly (Sunday at Midnight)
+  workflow_dispatch:
+
+jobs:
+  check-and-train:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          pip install wandb runpod requests python-dotenv
+
+      - name: Check & Trigger
+        env:
+          WANDB_API_KEY: ${{ secrets.WANDB_API_KEY }}
+          RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Built-in
+        run: python scripts/check_and_trigger.py
