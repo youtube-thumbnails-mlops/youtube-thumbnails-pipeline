@@ -26,5 +26,6 @@ jobs:
         with:
           context: .
           push: true
-          # Replace with your actual DockerHub username/repo
-          tags: danieleacquaviva/youtube-thumbnails-train:latest
+          tags: |
+            danieleacquaviva/youtube-thumbnails-train:latest
+            danieleacquaviva/youtube-thumbnails-train:v${{ github.run_number }}
