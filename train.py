@@ -100,6 +100,19 @@ def train(args):
     model.fc = nn.Linear(model.fc.in_features, NUM_CLASSES)
     model = model.to(device)
     
+    # FINE-TUNING LOGIC
+    if args.checkpoint_path and os.path.exists(args.checkpoint_path):
+        print(f"🔄 Loading checkpoint from {args.checkpoint_path}...")
+        try:
+            state_dict = torch.load(args.checkpoint_path, map_location=device)
+            model.load_state_dict(state_dict)
+            print("✅ Checkpoint loaded. Fine-tuning from previous state.")
+        except Exception as e:
+            print(f"⚠️ Checkpoint load failed (Architecture changed?): {e}")
+            print("reshaping or ignoring mismatch is possible, but for safety:")
+            print("🔄 Falling back to training from scratch (ImageNet weights).")
+            # If we wanted to be fancy, we could partial load, but strict fallback is safer for automation
+    
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
     
@@ -211,6 +224,7 @@ if __name__ == "__main__":
     parser.add_argument("--epochs", type=int, default=5)
     parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--learning_rate", type=float, default=0.001)
+    parser.add_argument("--checkpoint_path", type=str, default=None, help="Path to initialize weights from")
     
     args = parser.parse_args()
     train(args)

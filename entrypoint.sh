@@ -73,34 +73,35 @@ MERGED_CSV="$MERGED_DIR/metadata.csv"
 echo "🔄 Merging daily batches into single training set..."
 
 # Initialize CSV with header (take from first batch found)
-FIRST_CSV=$(find batches -name "metadata.csv" | head -n 1)
-if [ -z "$FIRST_CSV" ] && [ -f "current/metadata.csv" ]; then
-    FIRST_CSV="current/metadata.csv"
-fi
+# We now use the python script for robust merging
+echo "🔄 Merging daily batches into single training set (using Python)..."
 
-if [ -n "$FIRST_CSV" ]; then
-    head -n 1 "$FIRST_CSV" > "$MERGED_CSV"
-else
-    echo "⚠️  No metadata.csv found! Training might fail."
-    touch "$MERGED_CSV"
-fi
+# Ensure we have the script (it's in /app/scripts usually, or we are in /app currently?)
+# entrypoint starts in /app? No, "cd $REPO_DIR" happens earlier.
+# The `scripts/merge_datasets.py` is in the CODE repository (/app), not the DATA repository ($REPO_DIR).
+# So we run it from /app/scripts/merge_datasets.py
 
-# Concatenate CSVs and link images
-# Loop through Batches
+python /app/scripts/merge_datasets.py --source_dir . --output_file "$MERGED_CSV"
+
+# Link images (Assume images are in same dir as csv)
+# We still need to link images. The python script only handles CSV.
 find batches -name "metadata.csv" | sort | while read csv; do
-    echo "   Processing $csv..."
-    # Append content (skip header)
-    tail -n +2 "$csv" >> "$MERGED_CSV"
-    # Link images (assume images are in same dir as csv)
     DIR=$(dirname "$csv")
     cp -n "$DIR"/*.jpg "$MERGED_DIR/" 2>/dev/null || true
 done
 
-# SKIP Current/ as per user request (Only train on consolidated batches)
-# if [ -d "current" ]; then ... fi
-
 COUNT=$(($(wc -l < "$MERGED_CSV") - 1))
 echo "✅ Merge complete. Total training samples: $COUNT"
+
+# Fetch Model (Fine-Tuning)
+echo "📥 Checking for previous model checkpoint..."
+python /app/scripts/fetch_model.py
+
+CHECKPOINT_ARG=""
+if [ -f "checkpoint.pth" ]; then
+    echo "✅ Found checkpoint, enabling fine-tuning."
+    CHECKPOINT_ARG="--checkpoint_path checkpoint.pth"
+fi
 
 # 6. Run Training
 # Pass the merged dir to train.py
@@ -108,4 +109,4 @@ echo "🚀 Starting Training..."
 cd /app # Back to code
 # Replace --data_dir arg or just run the command passed
 # We override the command to force our data dir
-exec python train.py --data_dir "$MERGED_DIR" --epochs 10
+exec python train.py --data_dir "$MERGED_DIR" --epochs 10 $CHECKPOINT_ARG
