@@ -14,7 +14,7 @@ def submit_job():
     
     # Get image version from env (set by check_and_trigger), default to 'latest' only if missing
     image_tag = os.getenv("IMAGE_TAG", "latest")
-    IMAGE_NAME = f"danieleacquaviva/youtube-thumbnails-train:{image_tag}"
+    IMAGE_NAME = f"danieleacquaviva/youtube-thumbnails-pipeline:{image_tag}"
     
     print(f"🚀 Submitting job to RunPod with image: {IMAGE_NAME}...")
     

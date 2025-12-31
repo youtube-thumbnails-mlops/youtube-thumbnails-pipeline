@@ -10,7 +10,7 @@ from submit_job import submit_job
 
 load_dotenv()
 
-PROJECT_NAME = "youtube-thumbnails-train"
+PROJECT_NAME = "youtube-thumbnails-pipeline"
 DATASET_REPO = "daniele-acquaviva/youtube-thumbnails-dataset" # Adjust user/org
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 

@@ -27,5 +27,5 @@ jobs:
           context: .
           push: true
           tags: |
-            danieleacquaviva/youtube-thumbnails-train:latest
-            danieleacquaviva/youtube-thumbnails-train:v${{ github.run_number }}
+            danieleacquaviva/youtube-thumbnails-pipeline:latest
+            danieleacquaviva/youtube-thumbnails-pipeline:v${{ github.run_number }}

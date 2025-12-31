@@ -12,7 +12,7 @@ import numpy as np
 from tqdm import tqdm
 
 # Config
-PROJECT_NAME = "youtube-thumbnails-train"
+PROJECT_NAME = "youtube-thumbnails-pipeline"
 ENTITY = "daniele-acquaviva"
 
 # YouTube Category ID Mapping (Simplified)
@@ -181,7 +181,8 @@ def train(args):
     # 5. Log Artifacts
     print("Training complete. Saving model...")
     
-    artifact = wandb.Artifact('thumbnail-classifier', type='model')
+    # Save metadata for promotion script
+    artifact = wandb.Artifact('thumbnail-classifier', type='model', metadata={"val_acc": best_acc})
     artifact.add_file('best_model.pth')
     wandb.log_artifact(artifact)
     
@@ -204,19 +205,7 @@ def train(args):
     
     wandb.finish()
 
-    # --- AUTO-TERMINATE POD (Cost Saving) ---
-    pod_id = os.getenv("RUNPOD_POD_ID")
-    api_key = os.getenv("RUNPOD_API_KEY")
-    if pod_id and api_key:
-        print(f"🛑 Terminating Pod {pod_id} to save costs...")
-        import runpod
-        runpod.api_key = api_key
-        try:
-            runpod.terminate_pod(pod_id)
-        except Exception as e:
-            print(f"⚠️ Failed to terminate pod: {e}")
-    else:
-        print("RunPod ID not found, skipping termination (Local Run?)")
+    print("✅ Training script finished.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

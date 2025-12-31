@@ -63,24 +63,14 @@ echo "⬇️  Pulling data (this may take a moment)..."
 dvc pull
 
 # 5. MERGE DATASETS
-# We have batches/batch_*/ and current/
-# train.py expects ONE folder. We merge into $DATA_ROOT/merged
-
+# Merge daily batches and current/ into a single training set
 MERGED_DIR="$DATA_ROOT/merged"
 mkdir -p "$MERGED_DIR"
 MERGED_CSV="$MERGED_DIR/metadata.csv"
 
 echo "🔄 Merging daily batches into single training set..."
 
-# Initialize CSV with header (take from first batch found)
-# We now use the python script for robust merging
-echo "🔄 Merging daily batches into single training set (using Python)..."
-
-# Ensure we have the script (it's in /app/scripts usually, or we are in /app currently?)
-# entrypoint starts in /app? No, "cd $REPO_DIR" happens earlier.
-# The `scripts/merge_datasets.py` is in the CODE repository (/app), not the DATA repository ($REPO_DIR).
-# So we run it from /app/scripts/merge_datasets.py
-
+# Use the python script from the code repo (/app) to handle the CSV merge
 python /app/scripts/merge_datasets.py --source_dir . --output_file "$MERGED_CSV"
 
 # Link images (Assume images are in same dir as csv)
@@ -109,4 +99,38 @@ echo "🚀 Starting Training..."
 cd /app # Back to code
 # Replace --data_dir arg or just run the command passed
 # We override the command to force our data dir
-exec python train.py --data_dir "$MERGED_DIR" --epochs 10 $CHECKPOINT_ARG
+python train.py --data_dir "$MERGED_DIR" --epochs 10 $CHECKPOINT_ARG
+
+# 7. Testing & Promotion
+echo "🧪 Starting Testing Pipeline..."
+# Ensure we have the Golden Test Set
+echo "📥 Pulling Test Set..."
+if [ -f "test_set.dvc" ]; then
+    dvc pull test_set.dvc
+else
+    echo "⚠️ test_set.dvc not found in dataset repo. Skipping Test Set pull."
+fi 
+
+python /app/scripts/promote_model.py
+
+# 8. Auto-Terminate Pod
+echo "🛑 Checking for Pod Termination..."
+# We use a small inline python script to handle the termination since we have 'runpod' installed
+python -c "
+import os
+import runpod
+
+pod_id = os.getenv('RUNPOD_POD_ID')
+api_key = os.getenv('RUNPOD_API_KEY')
+
+if pod_id and api_key:
+    print(f'🛑 Terminating Pod {pod_id} to save costs...')
+    runpod.api_key = api_key
+    try:
+        runpod.terminate_pod(pod_id)
+    except Exception as e:
+        print(f'⚠️ Failed to terminate pod: {e}')
+else:
+    print('ℹ️  RunPod ID not found, skipping termination (Local Run?)')
+"
+

@@ -3,7 +3,7 @@ import os
 import shutil
 
 # Configuration matches train.py
-PROJECT_NAME = "youtube-thumbnails-train"
+PROJECT_NAME = "youtube-thumbnails-pipeline"
 ENTITY = "daniele-acquaviva"
 ARTIFACT_NAME = "thumbnail-classifier"
 ALIAS = "prod"
