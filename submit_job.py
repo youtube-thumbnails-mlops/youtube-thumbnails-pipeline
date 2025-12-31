@@ -26,10 +26,12 @@ def submit_job():
         gpu_count=1,
         container_disk_in_gb=20,
         env={
+            "RUNPOD_API_KEY": os.getenv("RUNPOD_API_KEY"), # Needed for self-termination
             "WANDB_API_KEY": os.getenv("WANDB_API_KEY"),
             "DVC_REMOTE_URL": os.getenv("R2_ENDPOINT"),
             "AWS_ACCESS_KEY_ID": os.getenv("R2_ACCESS_KEY_ID"),
             "AWS_SECRET_ACCESS_KEY": os.getenv("R2_SECRET_ACCESS_KEY"),
+            "TARGET_BATCH": os.getenv("TARGET_BATCH", ""), # Passed for version control
             # DVC often uses standard AWS env vars or specific config
         },
         docker_args="python train.py --epochs 10" # Command to run

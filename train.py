@@ -191,6 +191,20 @@ def train(args):
     
     wandb.finish()
 
+    # --- AUTO-TERMINATE POD (Cost Saving) ---
+    pod_id = os.getenv("RUNPOD_POD_ID")
+    api_key = os.getenv("RUNPOD_API_KEY")
+    if pod_id and api_key:
+        print(f"🛑 Terminating Pod {pod_id} to save costs...")
+        import runpod
+        runpod.api_key = api_key
+        try:
+            runpod.terminate_pod(pod_id)
+        except Exception as e:
+            print(f"⚠️ Failed to terminate pod: {e}")
+    else:
+        print("RunPod ID not found, skipping termination (Local Run?)")
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", type=str, default="./data", help="Path to dataset containing images and metadata.csv")
