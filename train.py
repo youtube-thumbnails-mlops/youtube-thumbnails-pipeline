@@ -101,6 +101,21 @@ def train(args):
     model = model.to(device)
     
     # FINE-TUNING LOGIC
+    # 1. Check for Prod Model Env Var (set by submit_job.py)
+    prod_artifact_path = os.getenv("PROD_MODEL_ARTIFACT")
+    if prod_artifact_path and not args.checkpoint_path:
+        print(f"📥 Found PROD_MODEL_ARTIFACT={prod_artifact_path}. Downloading...")
+        try:
+            api = wandb.Api()
+            artifact = api.artifact(prod_artifact_path)
+            artifact_dir = artifact.download()
+            args.checkpoint_path = os.path.join(artifact_dir, "best_model.pth")
+            print(f"✅ Downloaded to {args.checkpoint_path}")
+        except Exception as e:
+            print(f"⚠️ Failed to download production model: {e}")
+            print("   Will train from scratch.")
+
+    # 2. Load Checkpoint if path exists
     if args.checkpoint_path and os.path.exists(args.checkpoint_path):
         print(f"🔄 Loading checkpoint from {args.checkpoint_path}...")
         try:
@@ -184,24 +199,37 @@ def train(args):
     # Save metadata for promotion script
     artifact = wandb.Artifact('thumbnail-classifier', type='model', metadata={"val_acc": best_acc})
     artifact.add_file('best_model.pth')
-    wandb.log_artifact(artifact)
     
     # Export ONNX for Frontend (ONNX Runtime Web)
     print("Exporting ONNX model...")
     dummy_input = torch.randn(1, 3, 224, 224, device=device)
     
-    # Opset 12 is a good balance for web compatibility
+    # Opset 18 to match PyTorch 2.9+
     torch.onnx.export(
         model, 
         dummy_input, 
         "model.onnx", 
         verbose=False,
-        opset_version=12,
+        opset_version=18,
         input_names=['input'],
-        output_names=['output'],
-        dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
+        output_names=['output']
     )
-    wandb.save("model.onnx")
+    # Add ONNX to the SAME artifact
+    artifact.add_file("model.onnx")
+    
+    wandb.log_artifact(artifact)
+    
+    # 6. Champion/Challenger Promotion
+    print("\n🏆 Checking for promotion eligibility...")
+    import subprocess
+    promote_script = os.path.join(os.path.dirname(__file__), "scripts", "promote_to_registry.py")
+    try:
+        # We pass 'latest' because we just logged it. The script will compare accuracies.
+        subprocess.run([sys.executable, promote_script, "--version", "latest"], check=True)
+    except subprocess.CalledProcessError:
+        print("⚠️ Promotion check failed (Script error).")
+    except Exception as e:
+        print(f"⚠️ Promotion check skipped: {e}")
     
     wandb.finish()
 

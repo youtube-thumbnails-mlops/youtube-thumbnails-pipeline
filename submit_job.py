@@ -31,7 +31,9 @@ def submit_job():
             "DVC_REMOTE_URL": os.getenv("R2_ENDPOINT"),
             "AWS_ACCESS_KEY_ID": os.getenv("R2_ACCESS_KEY_ID"),
             "AWS_SECRET_ACCESS_KEY": os.getenv("R2_SECRET_ACCESS_KEY"),
-            "TARGET_BATCH": os.getenv("TARGET_BATCH", ""), # Passed for version control
+            "TARGET_BATCH": os.getenv("TARGET_BATCH", ""),
+            # Always point to the production model in Registry
+            "PROD_MODEL_ARTIFACT": "daniele5/model-registry/thumbnail-classifier:production",
             # DVC often uses standard AWS env vars or specific config
         },
         docker_args="python train.py --epochs 10" # Command to run
