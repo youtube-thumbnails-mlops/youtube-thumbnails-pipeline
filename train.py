@@ -18,8 +18,8 @@ ENTITY = "daniele-acquaviva"
 # YouTube Category ID Mapping (Simplified)
 # Real mapping should be comprehensive or dynamic
 CATEGORY_MAP = {
-    1: 0, 2: 1, 10: 2, 15: 3, 17: 4, 19: 5, 20: 6, 22: 7, 23: 8, 24: 9,
-    25: 10, 26: 11, 27: 12, 28: 13, 29: 14, 30: 15, 43: 16
+    1: 0, 2: 1, 10: 2, 15: 3, 17: 4, 19: 5, 20: 6, 23: 7, 24: 8,
+    25: 9, 26: 10, 27: 11, 28: 12, 29: 13, 30: 14, 43: 15
 }
 NUM_CLASSES = len(CATEGORY_MAP)
 

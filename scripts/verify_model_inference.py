@@ -12,11 +12,11 @@ PROJECT = "model-registry"
 MODEL_NAME = "thumbnail-classifier"
 # Categories (ID -> Name mapping would be better, but using indices for now)
 CATEGORY_MAP = {
-    0: "Automobiles", 1: "Comedy", 2: "Education", 3: "Entertainment", 
-    4: "Film & Animation", 5: "Gaming", 6: "Howto & Style", 7: "Music", 
-    8: "News & Politics", 9: "Nonprofits & Activism", 10: "People & Blogs", 
-    11: "Pets & Animals", 12: "Science & Technology", 13: "Shows", 
-    14: "Sports", 15: "Travel & Events", 16: "Movies"
+    0: "Film & Animation", 1: "Automobiles", 2: "Music", 3: "Pets & Animals", 
+    4: "Sports", 5: "Travel & Events", 6: "Gaming", 7: "Comedy", 
+    8: "Entertainment", 9: "News & Politics", 10: "Howto & Style", 
+    11: "Education", 12: "Science & Technology", 13: "Nonprofits & Activism", 
+    14: "Movies", 15: "Shows"
 }
 
 def verify_inference():
